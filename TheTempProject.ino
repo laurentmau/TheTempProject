@@ -1,4 +1,4 @@
-#define HOSTNAME "Temp03"
+
 
 #include <ESP8266mDNS.h>
 #include <Arduino.h>
@@ -9,15 +9,20 @@
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <ArduinoOTA.h>
+#include "SSD1306Wire.h"
 
 #include <NetworkCredentials.h> // This file is in the <Arduino>/libraries/MyCommon directory defines SSID : the ssid of the wifi network , PASSWORD : the network's password.
 
-#define DHTPIN D1 // Digital pin connected to the DHT sensor
+/* - - - - - - - - - CONFIGURATION - - - - - - - - - - - - - - - */
 
+#define DHTPIN D1 // Digital pin connected to the DHT sensor
 // Uncomment the type of sensor in use:
 //#define DHTTYPE    DHT11     // DHT 11
 #define DHTTYPE DHT22 // DHT 22 (AM2302)
 //#define DHTTYPE    DHT21     // DHT 21 (AM2301)
+#define HOSTNAME "Temp03"
+
+/* - - - - - - - - - END CONFIGURATION - - - - - - - - - - - - - - - */
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -114,6 +119,19 @@ String processor(const String &var)
 
 void setup()
 {
+  if (HAS_SCREEN)
+  {
+    // Initialising the UI will init the display too.
+
+    display.init();
+
+    display.flipScreenVertically();
+
+    display.setFont(ArialMT_Plain_10);
+
+    display.clear();
+  }
+
   // Serial port for debugging purposes
   Serial.begin(115200);
   dht.begin();
@@ -185,8 +203,6 @@ void loop()
     previousMillis = currentMillis;
     // Read temperature as Celsius (the default)
     float newT = dht.readTemperature();
-    // Read temperature as Fahrenheit (isFahrenheit = true)
-    //float newT = dht.readTemperature(true);
     // if temperature read failed, don't change t value
     if (isnan(newT))
     {
