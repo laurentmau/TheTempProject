@@ -16,11 +16,12 @@
 /* - - - - - - - - - CONFIGURATION - - - - - - - - - - - - - - - */
 
 #define DHTPIN D1 // Digital pin connected to the DHT sensor
-// Uncomment the type of sensor in use:
-//#define DHTTYPE    DHT11     // DHT 11
-#define DHTTYPE DHT22 // DHT 22 (AM2302)
-//#define DHTTYPE    DHT21     // DHT 21 (AM2301)
-#define HOSTNAME "Temp05"
+#define DHTTYPE DHT22 // DHT 22 (AM2302) , DHT 11 ,  DHT 21 (AM2301)
+const int analogInPin = A0;  // ESP8266 Analog Pin ADC0 = A0
+
+int sensorValue = 0;  // value read from the pot
+int outputValue = 0;  // value to output to a PWM pin
+#define HOSTNAME "Aurora_IoT"
 
 /* - - - - - - - - - END CONFIGURATION - - - - - - - - - - - - - - - */
 
@@ -66,16 +67,18 @@ const char index_html[] PROGMEM = R"rawliteral(
   <h2>ESP8266 DHT Server</h2>
   <p>
     <i class="fas fa-thermometer-half" style="color:#059e8a;"></i> 
-    <span class="dht-labels">Temperature</span> 
+    <span class="dht-labels">Temperature!</span> 
     <span id="temperature">%TEMPERATURE%</span>
     <sup class="units">&deg;C</sup>
   </p>
   <p>
     <i class="fas fa-tint" style="color:#00add6;"></i> 
     <span class="dht-labels">Humidity</span>
-    <span id="humidity">%HUMIDITY !!%</span>
+    <span id="humidity">%HUMIDITY %</span>
     <sup class="units">%</sup>
+    
   </p>
+ 
 </body>
 <script>
 setInterval(function ( ) {
@@ -113,6 +116,10 @@ String processor(const String &var)
   else if (var == "HUMIDITY")
   {
     return String(h);
+  }
+  else if (var == "MPX")
+  {
+    return String(sensorValue);
   }
   return String();
 }
@@ -189,7 +196,11 @@ void loop()
   {
     // save the last time you updated the DHT values
     previousMillis = currentMillis;
+//sensorValue = analogRead(analogInPin);
+    
     // Read temperature as Celsius (the default)
+    
+    
     float newT = dht.readTemperature();
     // if temperature read failed, don't change t value
     if (isnan(newT))
