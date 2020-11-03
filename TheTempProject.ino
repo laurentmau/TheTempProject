@@ -1,5 +1,3 @@
-
-
 #include <ESP8266mDNS.h>
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
@@ -10,36 +8,28 @@
 #include <DHT.h>
 #include <ArduinoOTA.h>
 
-
-#include <NetworkCredentials.h> // This file is in the <Arduino>/libraries/MyCommon directory defines SSID : the ssid of the wifi network , PASSWORD : the network's password.
+#define SSID "(((___)))"
+#define PASSWORD "barabane"
+//#include <NetworkCredentials.h> // This file is in the <Arduino>/libraries/MyCommon directory defines SSID : the ssid of the wifi network , PASSWORD : the network's password.
 
 /* - - - - - - - - - CONFIGURATION - - - - - - - - - - - - - - - */
-
 #define DHTPIN D1 // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT22 // DHT 22 (AM2302) , DHT 11 ,  DHT 21 (AM2301)
 const int analogInPin = A0;  // ESP8266 Analog Pin ADC0 = A0
-
 int sensorValue = 0;  // value read from the pot
 int outputValue = 0;  // value to output to a PWM pin
 #define HOSTNAME "Aurora_IoT"
 
+DHT dht(DHTPIN, DHTTYPE);
+float t = 0.0; // current temperature , updated in loop()
+float h = 0.0; // currenthumidity, updated in loop()
+AsyncWebServer server(80); // Create AsyncWebServer object on port 80
+unsigned long previousMillis = 0; // will store last time DHT was updated
+const long interval = 10000; // Updates DHT readings every 10 seconds
+
 /* - - - - - - - - - END CONFIGURATION - - - - - - - - - - - - - - - */
 
-DHT dht(DHTPIN, DHTTYPE);
-
-// current temperature & humidity, updated in loop()
-float t = 0.0;
-float h = 0.0;
-
-// Create AsyncWebServer object on port 80
-AsyncWebServer server(80);
-
-// Generally, you should use "unsigned long" for variables that hold time
-// The value will quickly become too large for an int to store
-unsigned long previousMillis = 0; // will store last time DHT was updated
-
-// Updates DHT readings every 10 seconds
-const long interval = 10000;
+/* - - - - - - - - - HTML WEbPAGE - - - - - - - - - - - - - - - */
 
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML><html>
@@ -104,11 +94,12 @@ setInterval(function ( ) {
 }, 10000 ) ;
 </script>
 </html>)rawliteral";
+/* - - - - - - - - - END HTML WEbPAGE - - - - - - - - - - - - - - - */
 
-// Replaces placeholder with DHT values
+
+// Replaces placeholder with sensors values
 String processor(const String &var)
 {
-  //Serial.println(var);
   if (var == "TEMPERATURE")
   {
     return String(t);
@@ -126,14 +117,9 @@ String processor(const String &var)
 
 void setup()
 {
-
-  // Serial port for debugging purposes
-  Serial.begin(115200);
+  Serial.begin(115200);   // Serial port for debugging purposes
   dht.begin();
-  // Hostname defaults to esp8266-[ChipID]
-
-  // Connect to Wi-Fi
-  WiFi.begin(SSID, PASSWORD);
+  WiFi.begin(SSID, PASSWORD);   // Connect to Wi-Fi
   Serial.println("Connecting to WiFi");
   while (WiFi.status() != WL_CONNECTED)
   {
